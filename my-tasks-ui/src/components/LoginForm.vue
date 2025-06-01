@@ -1,21 +1,12 @@
 <template>
-    <div class="register-container">
-        <div class="register-form-container">
+    <div class="login-container">
+        <div class="login-form-container">
             <div class="form-header">
-                <h2>Create Account</h2>
-                <p>Sign up to get started</p>
+                <h2>Welcome Back</h2>
+                <p>Sign in to your account</p>
             </div>
 
-            <form @submit.prevent="handleRegister" class="register-form">
-                <div class="input-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" v-model="formData.name" required
-                        :class="{ 'error': validationErrors?.name }" placeholder="Enter your full name">
-                    <span v-if="validationErrors?.name" class="field-error">
-                        {{ validationErrors.name[0] }}
-                    </span>
-                </div>
-
+            <form @submit.prevent="handleLogin" class="login-form">
                 <div class="input-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" v-model="formData.email" required
@@ -34,19 +25,9 @@
                     </span>
                 </div>
 
-                <div class="input-group">
-                    <label for="password_confirmation">Confirm Password</label>
-                    <input type="password" id="password_confirmation" v-model="formData.password_confirmation" required
-                        :class="{ 'error': validationErrors?.password_confirmation }"
-                        placeholder="Confirm your password">
-                    <span v-if="validationErrors?.password_confirmation" class="field-error">
-                        {{ validationErrors.password_confirmation[0] }}
-                    </span>
-                </div>
-
                 <button type="submit" :disabled="isLoading" class="submit-btn">
                     <span v-if="isLoading" class="spinner"></span>
-                    {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+                    {{ isLoading ? 'Signing In...' : 'Sign In' }}
                 </button>
             </form>
 
@@ -55,7 +36,8 @@
             </div>
 
             <div class="form-footer">
-                <p>Already have an account? <a href="#" class="login-link" @click.prevent="goToLogin">Sign in</a></p>
+                <p>Don't have an account? <a href="#" class="register-link" @click.prevent="goToRegister">Create
+                        Account</a></p>
             </div>
         </div>
     </div>
@@ -63,16 +45,14 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'; 
 import axios from 'axios';
 
-const router = useRouter();
+const router = useRouter(); 
 
 const formData = reactive({
-    name: '',
     email: '',
-    password: '',
-    password_confirmation: ''
+    password: ''
 });
 
 const isLoading = ref(false);
@@ -80,47 +60,54 @@ const message = ref('');
 const messageType = ref('');
 const validationErrors = ref(null);
 
-function goToLogin() {
-    router.push('/login');
+
+function goToRegister() {
+    router.push('/register');
 }
 
-async function handleRegister() {
+async function handleLogin() {
     isLoading.value = true;
     message.value = '';
     messageType.value = '';
     validationErrors.value = null;
 
     try {
-        const response = await axios.post('/api/auth/register', formData);
+        const response = await axios.post('/api/auth/login', formData);
 
-        message.value = 'Registration successful! You can now log in.';
+        const { access_token, user } = response.data;
+
+        localStorage.setItem('authToken', access_token);
+        localStorage.setItem('authUser', JSON.stringify(user));
+
+        axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+
+        message.value = 'Login successful! Redirecting...';
         messageType.value = 'success';
-        console.log('Registration successful:', response.data);
+        console.log('Login successful:', response.data);
 
-        formData.name = '';
         formData.email = '';
         formData.password = '';
-        formData.password_confirmation = '';
 
-        setTimeout(() => {
-            router.push('/login');
-        }, 2000); 
 
     } catch (error) {
         if (error.response) {
-            console.error('Registration error response:', error.response.data);
-            message.value = error.response.data.message || 'Registration failed. Please try again.';
-            messageType.value = 'error';
+            console.error('Login error response:', error.response.data);
 
-            if (error.response.status === 422) {
+            if (error.response.status === 401) {
+                message.value = 'Invalid email or password. Please try again.';
+            } else if (error.response.status === 422) {
                 validationErrors.value = error.response.data.errors;
+                message.value = 'Please fix the errors below.';
+            } else {
+                message.value = error.response.data.message || 'Login failed. Please try again.';
             }
+            messageType.value = 'error';
         } else if (error.request) {
-            console.error('Registration error request:', error.request);
+            console.error('Login error request:', error.request);
             message.value = 'No response from server. Please check your connection.';
             messageType.value = 'error';
         } else {
-            console.error('Registration error message:', error.message);
+            console.error('Login error message:', error.message);
             message.value = 'An unexpected error occurred.';
             messageType.value = 'error';
         }
@@ -137,7 +124,7 @@ async function handleRegister() {
     box-sizing: border-box;
 }
 
-.register-container {
+.login-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -147,7 +134,7 @@ async function handleRegister() {
     padding: 20px;
 }
 
-.register-form-container {
+.login-form-container {
     width: 100%;
     max-width: 400px;
     background-color: #ffffff;
@@ -175,7 +162,7 @@ async function handleRegister() {
     margin: 0;
 }
 
-.register-form {
+.login-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -297,18 +284,18 @@ async function handleRegister() {
     margin: 0;
 }
 
-.login-link {
+.register-link {
     color: #000000;
     font-weight: 500;
     text-decoration: none;
 }
 
-.login-link:hover {
+.register-link:hover {
     text-decoration: underline;
 }
 
 @media (max-width: 480px) {
-    .register-form-container {
+    .login-form-container {
         padding: 32px 24px;
         border: none;
         border-radius: 0;

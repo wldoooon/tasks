@@ -1,9 +1,18 @@
-<script setup>
-import RegisterForm from './components/RegisterForm.vue';
+<template>
+  <div id="app">
+    <router-view />
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App'
+}
 </script>
 
-<template>
-
-  <RegisterForm />
-
-</template>
+<style>
+#app {
+  margin: 0;
+  padding: 0;
+}
+</style>
