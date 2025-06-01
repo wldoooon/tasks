@@ -45,10 +45,10 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router'; 
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-const router = useRouter(); 
+const router = useRouter();
 
 const formData = reactive({
     email: '',
@@ -59,7 +59,6 @@ const isLoading = ref(false);
 const message = ref('');
 const messageType = ref('');
 const validationErrors = ref(null);
-
 
 function goToRegister() {
     router.push('/register');
@@ -73,12 +72,12 @@ async function handleLogin() {
 
     try {
         const response = await axios.post('/api/auth/login', formData);
-
+        
         const { access_token, user } = response.data;
-
+        
         localStorage.setItem('authToken', access_token);
         localStorage.setItem('authUser', JSON.stringify(user));
-
+        
         axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
         message.value = 'Login successful! Redirecting...';
@@ -92,20 +91,33 @@ async function handleLogin() {
     } catch (error) {
         if (error.response) {
             console.error('Login error response:', error.response.data);
-
+            
             if (error.response.status === 401) {
-                message.value = 'Invalid email or password. Please try again.';
+                const errorData = error.response.data;
+                message.value = errorData.message || errorData.error || 'Invalid email or password. Please try again.';
+                messageType.value = 'error';
+                
             } else if (error.response.status === 422) {
-                validationErrors.value = error.response.data.errors;
-                message.value = 'Please fix the errors below.';
+                const errorData = error.response.data;
+                validationErrors.value = errorData.errors || errorData;
+                message.value = errorData.message || 'Please fix the errors below.';
+                messageType.value = 'error';
+                
+            } else if (error.response.status === 500) {
+                message.value = 'Server error. Please try again later.';
+                messageType.value = 'error';
+                
             } else {
-                message.value = error.response.data.message || 'Login failed. Please try again.';
+                const errorData = error.response.data;
+                message.value = errorData.message || 'Login failed. Please try again.';
+                messageType.value = 'error';
             }
-            messageType.value = 'error';
+            
         } else if (error.request) {
             console.error('Login error request:', error.request);
             message.value = 'No response from server. Please check your connection.';
             messageType.value = 'error';
+            
         } else {
             console.error('Login error message:', error.message);
             message.value = 'An unexpected error occurred.';

@@ -93,35 +93,58 @@ async function handleRegister() {
     try {
         const response = await axios.post('/api/auth/register', formData);
 
-        message.value = 'Registration successful! You can now log in.';
-        messageType.value = 'success';
-        console.log('Registration successful:', response.data);
+        if (response.data.success) {
+            message.value = response.data.message;
+            messageType.value = 'success';
+            
+            console.log('Registration successful:', response.data);
 
-        formData.name = '';
-        formData.email = '';
-        formData.password = '';
-        formData.password_confirmation = '';
+            // Clear form
+            formData.name = '';
+            formData.email = '';
+            formData.password = '';
+            formData.password_confirmation = '';
 
-        setTimeout(() => {
-            router.push('/login');
-        }, 2000); 
+            setTimeout(() => {
+                router.push('/login');
+            }, 2000);
+        }
 
     } catch (error) {
         if (error.response) {
             console.error('Registration error response:', error.response.data);
-            message.value = error.response.data.message || 'Registration failed. Please try again.';
-            messageType.value = 'error';
-
+            
             if (error.response.status === 422) {
-                validationErrors.value = error.response.data.errors;
+                const errorData = error.response.data;
+                
+                validationErrors.value = errorData.errors;
+                
+                message.value = errorData.message || 'Please fix the errors below.';
+                messageType.value = 'error';
+                
+                if (errorData.error_count > 1) {
+                    message.value += ` (${errorData.error_count} errors found)`;
+                }
+                
+            } else if (error.response.status === 500) {
+                const errorData = error.response.data;
+                message.value = errorData.message || 'Server error. Please try again later.';
+                messageType.value = 'error';
+                
+            } else {
+                const errorData = error.response.data;
+                message.value = errorData.message || 'Registration failed. Please try again.';
+                messageType.value = 'error';
             }
+            
         } else if (error.request) {
             console.error('Registration error request:', error.request);
-            message.value = 'No response from server. Please check your connection.';
+            message.value = 'No response from server. Please check your internet connection.';
             messageType.value = 'error';
+            
         } else {
             console.error('Registration error message:', error.message);
-            message.value = 'An unexpected error occurred.';
+            message.value = 'An unexpected error occurred. Please try again.';
             messageType.value = 'error';
         }
     } finally {
