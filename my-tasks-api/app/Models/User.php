@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Add this
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -68,5 +69,15 @@ class User extends Authenticatable implements JWTSubject
             // 'foo' => 'bar',
             // 'user_role' => $this->role, // Example if you have a role property
         ];
+    }
+
+    /**
+     * Get the tasks for the user.
+     * Defines a one-to-many relationship.
+     * A user HAS MANY tasks.
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 }

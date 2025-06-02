@@ -5,18 +5,20 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\Auth\AuthController; 
 
-Route::group([
-    'middleware' => 'api', 
-    'prefix' => 'auth'     
-], function ($router) {
+// Public auth routes
+Route::prefix('auth')->group(function ($router) {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::get('/user-profile', [AuthController::class, 'userProfile']);
+    
+    // Protected auth routes
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::get('/user-profile', [AuthController::class, 'userProfile']);
+    });
 });
 
-
+// Protected API routes
 Route::middleware('auth:api')->group(function () {
     Route::apiResource('tasks', TaskController::class);
 });
