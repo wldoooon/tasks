@@ -27,8 +27,25 @@
 
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" v-model="formData.password" required
-                        :class="{ 'error': validationErrors?.password }" placeholder="Enter your password">
+                    <div class="password-input-wrapper">
+                        <input :type="showPassword ? 'text' : 'password'" id="password" v-model="formData.password"
+                            required :class="{ 'error': validationErrors?.password }" placeholder="Enter your password">
+                        <button type="button" class="password-toggle" @click="togglePasswordVisibility"
+                            :aria-label="showPassword ? 'Hide password' : 'Show password'">
+                            <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="eye-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="eye-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                    </div>
                     <span v-if="validationErrors?.password" class="field-error">
                         {{ validationErrors.password[0] }}
                     </span>
@@ -36,9 +53,27 @@
 
                 <div class="input-group">
                     <label for="password_confirmation">Confirm Password</label>
-                    <input type="password" id="password_confirmation" v-model="formData.password_confirmation" required
-                        :class="{ 'error': validationErrors?.password_confirmation }"
-                        placeholder="Confirm your password">
+                    <div class="password-input-wrapper">
+                        <input :type="showConfirmPassword ? 'text' : 'password'" id="password_confirmation"
+                            v-model="formData.password_confirmation" required
+                            :class="{ 'error': validationErrors?.password_confirmation }"
+                            placeholder="Confirm your password">
+                        <button type="button" class="password-toggle" @click="toggleConfirmPasswordVisibility"
+                            :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'">
+                            <svg v-if="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="eye-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="eye-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                    </div>
                     <span v-if="validationErrors?.password_confirmation" class="field-error">
                         {{ validationErrors.password_confirmation[0] }}
                     </span>
@@ -64,7 +99,7 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import api from '../utils/axios';
 
 const router = useRouter();
 
@@ -80,8 +115,19 @@ const message = ref('');
 const messageType = ref('');
 const validationErrors = ref(null);
 
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+
 function goToLogin() {
     router.push('/login');
+}
+
+function togglePasswordVisibility() {
+    showPassword.value = !showPassword.value;
+}
+
+function toggleConfirmPasswordVisibility() {
+    showConfirmPassword.value = !showConfirmPassword.value;
 }
 
 async function handleRegister() {
@@ -91,19 +137,21 @@ async function handleRegister() {
     validationErrors.value = null;
 
     try {
-        const response = await axios.post('/api/auth/register', formData);
+        const response = await api.post('/auth/register', formData);
 
         if (response.data.success) {
             message.value = response.data.message;
             messageType.value = 'success';
-            
+
             console.log('Registration successful:', response.data);
 
-            // Clear form
             formData.name = '';
             formData.email = '';
             formData.password = '';
             formData.password_confirmation = '';
+
+            showPassword.value = false;
+            showConfirmPassword.value = false;
 
             setTimeout(() => {
                 router.push('/login');
@@ -113,35 +161,32 @@ async function handleRegister() {
     } catch (error) {
         if (error.response) {
             console.error('Registration error response:', error.response.data);
-            
+
             if (error.response.status === 422) {
                 const errorData = error.response.data;
-                
+
                 validationErrors.value = errorData.errors;
-                
+
                 message.value = errorData.message || 'Please fix the errors below.';
                 messageType.value = 'error';
-                
-                if (errorData.error_count > 1) {
-                    message.value += ` (${errorData.error_count} errors found)`;
-                }
-                
+
+
             } else if (error.response.status === 500) {
                 const errorData = error.response.data;
                 message.value = errorData.message || 'Server error. Please try again later.';
                 messageType.value = 'error';
-                
+
             } else {
                 const errorData = error.response.data;
                 message.value = errorData.message || 'Registration failed. Please try again.';
                 messageType.value = 'error';
             }
-            
+
         } else if (error.request) {
             console.error('Registration error request:', error.request);
             message.value = 'No response from server. Please check your internet connection.';
             messageType.value = 'error';
-            
+
         } else {
             console.error('Registration error message:', error.message);
             message.value = 'An unexpected error occurred. Please try again.';
@@ -238,6 +283,47 @@ async function handleRegister() {
 
 .input-group input.error {
     border-color: #ef4444;
+}
+
+/* Password input wrapper styling */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+    /* Make space for the eye icon */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: #374151;
+}
+
+.password-toggle:focus {
+    outline: none;
+    color: #000000;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
 }
 
 .field-error {
